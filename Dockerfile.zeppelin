@@ -1,0 +1,41 @@
+FROM apache/spark:3.5.0-python3 AS spark-source
+
+FROM apache/zeppelin:0.10.1
+
+USER root
+
+# Copy Spark binaries from the official Spark image
+COPY --from=spark-source /opt/spark /opt/spark
+
+ENV SPARK_HOME=/opt/spark
+ENV PATH=$PATH:/opt/spark/bin
+ENV PYSPARK_PYTHON=python3
+
+# Use Python to reliably patch the interpreter JSON —
+# sed can't match across lines but Python can navigate the structure.
+RUN python3 - <<'EOF'
+import json, os
+
+path = "/opt/zeppelin/interpreter/spark/interpreter-setting.json"
+
+if not os.path.exists(path):
+    print(f"File not found: {path} — skipping patch")
+    exit(0)
+
+with open(path) as f:
+    data = json.load(f)
+
+patched = 0
+# The JSON is a list of interpreter group definitions
+for group in data:
+    for prop_name, prop_obj in group.get("properties", {}).items():
+        if prop_name == "zeppelin.spark.enableSupportedVersionCheck":
+            prop_obj["defaultValue"] = "false"
+            prop_obj["value"] = "false"
+            patched += 1
+
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+
+print(f"Patched {patched} occurrence(s) of enableSupportedVersionCheck -> false")
+EOF

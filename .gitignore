@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Data files
+data/
+graph_*.txt
+
+# Virtual environments
+env/
+venv/
+.venv/
+.conda/
+pip-wheel-metadata/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker/local env
+docker-compose.override.yml
+.env
+
+# Logs
+*.log
